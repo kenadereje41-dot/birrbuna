@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BirrBuna Admin</title>
+<meta name="robots" content="noindex,nofollow">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{--bg:#071B17;--card:#111827;--line:#1f2a37;--input:#0b1220;--accent:#10B981;--gold:#FACC15;--text:#fff;--muted:#9ca3af;--red:#f87171}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans Ethiopic",sans-serif;background:radial-gradient(120% 50% at 50% 0%,#0d3a2f,var(--bg) 60%);color:var(--text);min-height:100vh}
+  .wrap{max-width:1100px;margin:0 auto;padding:20px 16px 60px}
+  header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
+  .logo{font-size:22px;font-weight:800}.logo b{color:var(--accent)}.logo small{font-size:12px;color:var(--muted);font-weight:600;margin-left:6px}
+  button{font:inherit;border:0;border-radius:12px;padding:10px 14px;font-weight:700;color:#fff;background:var(--accent);cursor:pointer}
+  button.ghost{background:transparent;border:1px solid var(--line)} button.gold{background:var(--gold);color:#071B17}
+  button:disabled{opacity:.5}
+  input{background:var(--input);border:1px solid var(--line);color:#fff;border-radius:10px;padding:10px 12px;font-size:14px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;margin-bottom:16px}
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+  .tabs button{background:var(--card);border:1px solid var(--line)} .tabs button.on{background:var(--accent);color:#071B17}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+  .stat .l{color:var(--muted);font-size:13px}.stat .v{font-size:26px;font-weight:800;margin-top:4px}.stat .v.g{color:var(--gold)}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+  th{color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+  .scroll{overflow-x:auto}
+  .badge{font-size:12px;padding:3px 8px;border-radius:8px;background:rgba(250,204,21,.15);color:var(--gold)}
+  .badge.paid{background:rgba(16,185,129,.18);color:var(--accent)}
+  [data-f].on{background:var(--accent);color:#071B17;border-color:var(--accent)}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .medal{font-size:18px}
+  #login{max-width:380px;margin:12vh auto}
+  #login input{width:100%;margin-top:10px}
+  .err{color:var(--red);font-size:13px;margin-top:10px;min-height:18px}
+  .muted{color:var(--muted);font-size:13px}
+  .hidden{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- LOGIN -->
+  <div id="login" class="card">
+    <div class="logo" style="margin-bottom:6px">Birr<b>Buna</b><small>ADMIN</small></div>
+    <div class="muted">Log in with your admin email.</div>
+    <input id="email" type="email" placeholder="Email" autocomplete="username">
+    <input id="pass" type="password" placeholder="Password" autocomplete="current-password">
+    <button id="btnLogin" style="width:100%;margin-top:14px">Log in</button>
+    <div class="err" id="loginErr"></div>
+  </div>
+
+  <!-- APP -->
+  <div id="app" class="hidden">
+    <header>
+      <div class="logo">Birr<b>Buna</b><small>ADMIN</small></div>
+      <div class="row"><span class="muted" id="who"></span><button class="ghost" id="btnOut">Log out</button></div>
+    </header>
+
+    <div class="tabs">
+      <button data-t="overview" class="on">📊 Overview</button>
+      <button data-t="top">🏆 Contest Top 100</button>
+      <button data-t="wd">💸 Withdrawals</button>
+      <button data-t="users">👥 Users</button>
+    </div>
+
+    <section id="t-overview">
+      <div class="grid" id="stats"></div>
+    </section>
+
+    <section id="t-top" class="hidden">
+      <div class="card">
+        <div class="row">
+          <label class="muted">From <input type="datetime-local" id="topFrom"></label>
+          <label class="muted">To <input type="datetime-local" id="topTo"></label>
+          <button id="btnTop">Show</button>
+          <button class="ghost" id="btnCsv">⬇ CSV</button>
+        </div>
+        <div class="muted" style="margin-top:8px">Counts friends who joined through each person's link between these dates.</div>
+      </div>
+      <div class="card scroll"><table id="topTable"></table></div>
+    </section>
+
+    <section id="t-wd" class="hidden">
+      <div class="card row">
+        <button class="ghost on" data-f="pending">⏳ Pending</button>
+        <button class="ghost" data-f="paid">✅ Paid</button>
+        <button class="ghost" data-f="all">All</button>
+      </div>
+      <div class="card scroll"><table id="wdTable"></table></div>
+    </section>
+
+    <section id="t-users" class="hidden">
+      <div class="card row">
+        <input id="q" placeholder="Search name, @username or Telegram ID" style="flex:1;min-width:220px">
+        <button id="btnSearch">Search</button>
+      </div>
+      <div class="card scroll"><table id="usersTable"></table></div>
+    </section>
+  </div>
+</div>
+
+<script>
+/* ====== CONFIG: same values as the mini app ====== */
+const SUPABASE_URL = "https://mwhafdoqylalcxjwfilg.supabase.co";        // e.g. https://abcdxyz.supabase.co
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im13aGFmZG9xeWxhbGN4andmaWxnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ1NzQxNTgsImV4cCI6MjExMDE1MDE1OH0.CQ9oinVq4nVJlwcSx1tyBMTquZr553jKedl8qBasoog";   // "anon public" key
+/* ================================================= */
+
+const sb = SUPABASE_URL ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+const $ = id => document.getElementById(id);
+const esc = v => String(v ?? "").replace(/[&<>"]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));
+const fmt = n => Number(n||0).toLocaleString();
+const dt = d => d ? new Date(d).toLocaleString("en-GB", { timeZone:"Africa/Addis_Ababa", day:"2-digit", month:"short", year:"numeric", hour:"2-digit", minute:"2-digit" }) : "";
+const toLocalInput = iso => { const d = new Date(iso); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0,16); };
+let topRows = [], wdFilter = "pending";
+
+async function start(){
+  const { data:{ session } } = await sb.auth.getSession();
+  if (!session) return;
+  const { data:isAdmin } = await sb.rpc("is_admin");
+  if (!isAdmin){ $("loginErr").textContent = "This email is not an admin."; await sb.auth.signOut(); return; }
+  $("login").classList.add("hidden"); $("app").classList.remove("hidden");
+  $("who").textContent = session.user.email;
+  const { data:set } = await sb.from("settings").select("*");
+  const S = Object.fromEntries((set||[]).map(r => [r.key, r.value]));
+  $("topFrom").value = toLocalInput(S.contest_start || "2026-12-02T00:00:00+03:00");
+  $("topTo").value   = toLocalInput(S.contest_end   || "2027-05-15T23:59:59+03:00");
+  loadStats();
+}
+
+async function loadStats(){
+  const { data:s, error } = await sb.rpc("admin_stats");
+  if (error) return alertBox(error.message);
+  const items = [
+    ["👥 Users", fmt(s.users)], ["🆕 New (24h)", fmt(s.users_today)], ["🔗 Joined by invite", fmt(s.invited)],
+    ["🪙 B-Token given", fmt(s.tokens)], ["💰 Balances owed", fmt(s.balance_owed) + " ETB", true],
+    ["⏳ Pending withdrawals", fmt(s.pending_count) + " · " + fmt(s.pending_amount) + " ETB", true], ["✅ Paid out", fmt(s.paid_amount) + " ETB"] ];
+  $("stats").innerHTML = items.map(([l,v,g]) => `<div class="card stat"><div class="l">${l}</div><div class="v ${g?"g":""}">${v}</div></div>`).join("");
+}
+
+async function loadTop(){
+  const from = new Date($("topFrom").value).toISOString(), to = new Date($("topTo").value).toISOString();
+  const { data, error } = await sb.rpc("admin_top", { from_ts:from, to_ts:to, lim:100 });
+  if (error) return alertBox(error.message);
+  topRows = data || [];
+  const medal = r => r === 1 ? "🥇" : r === 2 ? "🥈" : r === 3 ? "🥉" : r;
+  $("topTable").innerHTML = `<tr><th>#</th><th>Name</th><th>Username</th><th>Telegram ID</th><th>Invites (contest)</th><th>All-time</th><th>B-Token</th></tr>` +
+    (topRows.length ? topRows.map(r => `<tr><td class="medal">${medal(r.rank)}</td><td>${esc(r.first_name)}</td><td>${r.username ? "@" + esc(r.username) : ""}</td>
+      <td>${r.tg_id}</td><td><b style="color:var(--gold)">${r.invites}</b></td><td>${r.all_time_refs}</td><td>${fmt(r.tokens)}</td></tr>`).join("")
+     : `<tr><td colspan="7" class="muted">No invites in this period yet.</td></tr>`);
+}
+
+function downloadCsv(){
+  const head = "rank,tg_id,first_name,username,invites,all_time_refs,tokens";
+  const rows = topRows.map(r => [r.rank, r.tg_id, `"${String(r.first_name||"").replace(/"/g,'""')}"`, r.username||"", r.invites, r.all_time_refs, r.tokens].join(","));
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([head + "\n" + rows.join("\n")], { type:"text/csv" }));
+  a.download = "birrbuna-top100.csv"; a.click();
+}
+
+async function loadWd(){
+  let q = sb.from("withdrawals").select("*").order("created_at", { ascending: wdFilter === "pending" }).limit(300);
+  if (wdFilter !== "all") q = q.eq("status", wdFilter);
+  const { data, error } = await q;
+  if (error) return alertBox(error.message);
+  const ids = [...new Set((data||[]).map(w => w.tg_id))];
+  const { data:us } = ids.length ? await sb.from("users").select("tg_id,first_name,username,refs").in("tg_id", ids) : { data:[] };
+  const U = Object.fromEntries((us||[]).map(u => [u.tg_id, u]));
+  $("wdTable").innerHTML = `<tr><th>Date</th><th>Name</th><th>Amount</th><th>Method</th><th>Number</th><th>Invites</th><th>Status</th><th></th></tr>` +
+    ((data||[]).length ? data.map(w => { const u = U[w.tg_id] || {}; return `<tr><td>${dt(w.created_at)}</td>
+      <td>${esc(u.first_name)} ${u.username ? `<span class="muted">@${esc(u.username)}</span>` : ""}</td>
+      <td><b style="color:var(--gold)">${fmt(w.amount)} ETB</b></td><td>${esc(w.method)}</td><td>${esc(w.account)}</td><td>${u.refs ?? ""}</td>
+      <td><span class="badge ${w.status==="paid"?"paid":""}">${w.status === "paid" ? "Paid " + dt(w.paid_at) : "Pending"}</span></td>
+      <td>${w.status === "pending" ? `<button class="gold" data-pay="${esc(w.wid)}">✅ Mark paid</button>` : ""}</td></tr>`; }).join("")
+     : `<tr><td colspan="8" class="muted">Nothing here.</td></tr>`);
+  document.querySelectorAll("[data-pay]").forEach(b => b.onclick = async () => {
+    b.disabled = true; b.textContent = "…";
+    const { error } = await sb.rpc("admin_mark_paid", { p_wid: b.dataset.pay });
+    if (error) alertBox(error.message);
+    loadWd(); loadStats();
+  });
+}
+
+async function loadUsers(){
+  const term = $("q").value.trim().replace(/^@/, "");
+  let q = sb.from("users").select("*").order("created_at", { ascending:false }).limit(200);
+  if (term){ q = /^\d+$/.test(term) ? q.eq("tg_id", term) : q.or(`first_name.ilike.%${term}%,username.ilike.%${term}%`); }
+  const { data, error } = await q;
+  if (error) return alertBox(error.message);
+  $("usersTable").innerHTML = `<tr><th>Joined</th><th>Name</th><th>Username</th><th>Telegram ID</th><th>Invites</th><th>B-Token</th><th>Balance</th><th>Tasks</th><th>Channels</th></tr>` +
+    ((data||[]).length ? data.map(u => `<tr><td>${dt(u.created_at)}</td><td>${esc(u.first_name)}</td><td>${u.username ? "@" + esc(u.username) : ""}</td>
+      <td>${u.tg_id}</td><td>${u.refs}</td><td>${fmt(u.tokens)}</td><td>${fmt(u.balance)} ETB</td><td>${Object.keys(u.completed||{}).length}</td><td>${Object.keys(u.joined||{}).length}/2</td></tr>`).join("")
+     : `<tr><td colspan="9" class="muted">No users found.</td></tr>`);
+}
+
+function alertBox(msg){ const d = document.createElement("div"); d.className = "card"; d.style.borderColor = "var(--red)"; d.textContent = "⚠️ " + msg; document.querySelector(".wrap").prepend(d); setTimeout(() => d.remove(), 6000); }
+
+/* events */
+$("btnLogin").onclick = async () => {
+  $("loginErr").textContent = "";
+  if (!SUPABASE_URL){ $("loginErr").textContent = "Fill SUPABASE_URL and SUPABASE_ANON_KEY at the bottom of this file."; return; }
+  const { error } = await sb.auth.signInWithPassword({ email:$("email").value.trim(), password:$("pass").value });
+  if (error){ $("loginErr").textContent = error.message; return; }
+  start();
+};
+$("pass").addEventListener("keydown", e => { if (e.key === "Enter") $("btnLogin").click(); });
+$("btnOut").onclick = async () => { await sb.auth.signOut(); location.reload(); };
+document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => {
+  document.querySelectorAll(".tabs button").forEach(x => x.classList.toggle("on", x === b));
+  document.querySelectorAll("section").forEach(s => s.classList.toggle("hidden", s.id !== "t-" + b.dataset.t));
+  ({ overview:loadStats, top:loadTop, wd:loadWd, users:loadUsers })[b.dataset.t]();
+});
+document.querySelectorAll("[data-f]").forEach(b => b.onclick = () => {
+  wdFilter = b.dataset.f; document.querySelectorAll("[data-f]").forEach(x => x.classList.toggle("on", x === b)); loadWd();
+});
+$("btnTop").onclick = loadTop; $("btnCsv").onclick = downloadCsv;
+$("btnSearch").onclick = loadUsers; $("q").addEventListener("keydown", e => { if (e.key === "Enter") loadUsers(); });
+if (SUPABASE_URL) start();
+</script>
+</body>
+</html>
