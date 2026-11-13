@@ -790,6 +790,7 @@ function showModal(kind, title, html){
 }
 
 /* ---- start ---- */
+render();
 (async () => {
   try{ const r = await api("init"); if (r.user) state = r.user; }catch(e){}
   render();
