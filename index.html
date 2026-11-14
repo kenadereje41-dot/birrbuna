@@ -9,6 +9,7 @@
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <!-- AdsGram SDK (rewarded ads). Remove if you only use link tasks. -->
 <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
+<script src="https://libtl.com/sdk.js" data-zone="12261255" data-sdk="show_12261255"></script>
 <style>
   :root{
     --bg:#071B17; --card:#111827; --line:#1f2a37; --input:#0b1220;
@@ -375,6 +376,8 @@ const CONFIG = {
 
   // AdsGram rewarded-ad block id (from partner.adsgram.ai). "" = no AdsGram tasks.
   ADSGRAM_BLOCK_ID: "59637",
+  MONETAG_ZONE_ID: "12261255",
+  AD_ORDER: ["monetag","adsgram"], // first network tried first; the other is the fallback
 
   // Every withdraw request is sent here (Make.com) and forwarded to the admin on Telegram.
   WITHDRAW_WEBHOOK: "https://hook.us2.make.com/1ho38tq7da7bjhdrx7v7qe2wlpikmgng",
@@ -654,10 +657,28 @@ async function reward(task){
 }
 function runTask(task, btn){
   if (task.type === "adsgram"){
-    if (!window.Adsgram || !CONFIG.ADSGRAM_BLOCK_ID){ toast(t("adNotReady")); return; }
-    const ad = window.Adsgram.init({ blockId: CONFIG.ADSGRAM_BLOCK_ID });
-    // In production the reward should come from AdsGram's server "reward URL" to your backend.
-    ad.show().then(r => { if (r.done) reward(task); }).catch(() => toast(t("adNotReady")));
+    const nets = {
+      monetag: () => {
+        const fn = window["show_" + CONFIG.MONETAG_ZONE_ID];
+        if (!CONFIG.MONETAG_ZONE_ID || typeof fn !== "function") return Promise.reject("monetag-missing");
+        return fn().then(() => true);
+      },
+      adsgram: () => {
+        if (!window.Adsgram || !CONFIG.ADSGRAM_BLOCK_ID) return Promise.reject("adsgram-missing");
+        return window.Adsgram.init({ blockId: CONFIG.ADSGRAM_BLOCK_ID }).show().then(r => !!(r && r.done));
+      }
+    };
+    const order = (CONFIG.AD_ORDER || ["adsgram","monetag"]).filter(n => nets[n]);
+    btn.disabled = true;
+    (async () => {
+      let shown = false, watched = false;
+      for (const n of order){
+        try { watched = await nets[n](); shown = true; break; }
+        catch(e){ /* this network had no ad: try the next one */ }
+      }
+      if (!shown || !watched){ toast(t("adNotReady")); return; }
+      try { await reward(task); } catch(e){ toast(e.message || t("adNotReady")); }
+    })().finally(() => { btn.disabled = false; render(); });
     return;
   }
   // link task: open link, user must stay away for task.seconds
