@@ -561,7 +561,29 @@ function taskCard(task, i){
   div.appendChild(b);
   return div;
 }
+/* ---- banned / on-hold account: full-screen lock ---- */
+const LOCK_TEXT = {
+  banned: ["⛔", "Your account is banned", "If you want to use BirrBuna, change your Telegram account.",
+           "Account kee dhorkameera (ban). BirrBuna fayyadamuu yoo barbaadde, account Telegram kee jijjiiri.",
+           "መለያዎ ታግዷል። BirrBunaን መጠቀም ከፈለጉ የቴሌግራም መለያዎን ይቀይሩ።"],
+  review: ["⏳", "We are checking your account", "The BirrBuna admin is checking your account. Your money will be sent within 4–7 days. You cannot use the app until the check is finished.",
+           "Admin BirrBuna account kee qorachaa jira. Maallaqni kee guyyaa 4–7 keessatti siif ergama. Hanga qorannoon xumuramutti app fayyadamuu hin dandeessu.",
+           "የBirrBuna አስተዳዳሪ መለያዎን እየመረመረ ነው። ገንዘብዎ ከ4–7 ቀናት ውስጥ ይላካል። ምርመራው እስኪያልቅ ድረስ መተግበሪያውን መጠቀም አይችሉም።"]
+};
+function showLocked(kind){
+  const L = LOCK_TEXT[kind]; if (!L) return false;
+  let o = document.getElementById("lockScreen");
+  if (!o){ o = document.createElement("div"); o.id = "lockScreen"; document.body.appendChild(o); }
+  o.style.cssText = "position:fixed;inset:0;z-index:99999;background:#061914;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px;gap:14px;font-family:inherit;overflow:auto";
+  o.innerHTML = '<div style="font-size:64px">' + L[0] + '</div>' +
+    '<div style="font-size:24px;font-weight:800;color:#FACC15">' + L[1] + '</div>' +
+    '<div style="font-size:16px;line-height:1.5;max-width:420px">🇬🇧 ' + L[2] + '</div>' +
+    '<div style="font-size:16px;line-height:1.5;max-width:420px;color:#A7F3D0">🟢 ' + L[3] + '</div>' +
+    '<div style="font-size:16px;line-height:1.5;max-width:420px;color:#FDE68A">🟡 ' + L[4] + '</div>';
+  return true;
+}
 function render(){
+  if (state && state.status && state.status !== "active" && showLocked(state.status)) return;
   document.documentElement.lang = lang;
   const m = CONFIG.APP_NAME.match(/^(.*?)([A-Z][a-z]+)$/) || [0, CONFIG.APP_NAME, ""];
   $("appName").innerHTML = `${m[1]}<b>${m[2]}</b>` + (TEST ? ` <small style="font-size:11px;color:var(--muted)">${t("testMode")}</small>` : "");
