@@ -377,7 +377,8 @@ const CONFIG = {
   // AdsGram rewarded-ad block id (from partner.adsgram.ai). "" = no AdsGram tasks.
   ADSGRAM_BLOCK_ID: "59637",
   MONETAG_ZONE_ID: "12261255",
-  AD_ORDER: ["monetag","adsgram"], // first network tried first; the other is the fallback
+  AD_ORDER: ["monetag","adsgram"],
+  INAPP_ADS: { frequency: 2, capping: 0.1, interval: 45, timeout: 10, everyPage: false }, // automatic Monetag In-App Interstitial (2 ads per 6 min, 45 s apart). Set null to turn off. // first network tried first; the other is the fallback
 
   // Every withdraw request is sent here (Make.com) and forwarded to the admin on Telegram.
   WITHDRAW_WEBHOOK: "https://hook.us2.make.com/1ho38tq7da7bjhdrx7v7qe2wlpikmgng",
@@ -695,6 +696,23 @@ function runTask(task, btn){
   }, 1000);
 }
 
+/* ---- extra ads: automatic In-App Interstitial + one ad before withdraw ---- */
+function startInAppAds(){
+  try{
+    const fn = window["show_" + CONFIG.MONETAG_ZONE_ID];
+    if (CONFIG.INAPP_ADS && typeof fn === "function") fn({ type:"inApp", inAppSettings: CONFIG.INAPP_ADS });
+  }catch(e){}
+}
+function showExtraAd(){
+  try{
+    const fn = window["show_" + CONFIG.MONETAG_ZONE_ID];
+    if (typeof fn !== "function") return Promise.resolve();
+    return Promise.race([ Promise.resolve(fn()).catch(()=>{}), new Promise(r => setTimeout(r, 60000)) ]);
+  }catch(e){ return Promise.resolve(); }
+}
+if (document.readyState === "complete") setTimeout(startInAppAds, 3000);
+else window.addEventListener("load", () => setTimeout(startInAppAds, 3000));
+
 /* ---- events ---- */
 document.querySelectorAll("nav a").forEach(a => a.onclick = e => {
   e.preventDefault();
@@ -732,6 +750,7 @@ $("btnWithdraw").onclick = async () => {
   if (amount > state.balance) return toast(t("notEnough"));
   if (CONFIG.CHANNELS.some(c => !(state.joined||{})[c.id])) return showModal("join", t("needJoin"), CONFIG.CHANNELS.map(c => `${(state.joined||{})[c.id] ? "✅" : "⬜"} ${c.name}`).join("<br>"));
   if (state.refs < CONFIG.MIN_INVITES_TO_WITHDRAW) return showModal("invite", t("noInv",{ n:CONFIG.MIN_INVITES_TO_WITHDRAW }), `${t("yourInvites")}: <b style="color:var(--gold)">${state.refs} / ${CONFIG.MIN_INVITES_TO_WITHDRAW}</b>`);
+  await showExtraAd(); // one ad before the withdraw request is sent
   try{
     const before = state.balance;
     const wid = Date.now().toString(36) + Math.random().toString(36).slice(2,6);
