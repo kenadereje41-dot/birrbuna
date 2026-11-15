@@ -10,6 +10,7 @@
 <!-- AdsGram SDK (rewarded ads). Remove if you only use link tasks. -->
 <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
 <script src="https://libtl.com/sdk.js" data-zone="12261255" data-sdk="show_12261255"></script>
+<script src="https://w.tads.me/widget.js"></script>
 <style>
   :root{
     --bg:#071B17; --card:#111827; --line:#1f2a37; --input:#0b1220;
@@ -377,7 +378,8 @@ const CONFIG = {
   // AdsGram rewarded-ad block id (from partner.adsgram.ai). "" = no AdsGram tasks.
   ADSGRAM_BLOCK_ID: "59637",
   MONETAG_ZONE_ID: "12261255",
-  AD_ORDER: ["monetag","adsgram"],
+  TADS_WIDGET_ID: 13302,            // TADS fullscreen widget
+  AD_ORDER: ["monetag","tads","adsgram"], // tried in this order; the next one is the fallback
   INAPP_ADS: { frequency: 2, capping: 0.1, interval: 45, timeout: 10, everyPage: false }, // automatic Monetag In-App Interstitial (2 ads per 6 min, 45 s apart). Set null to turn off. // first network tried first; the other is the fallback
 
   // Every withdraw request is sent here (Make.com) and forwarded to the admin on Telegram.
@@ -659,6 +661,17 @@ async function reward(task){
 function runTask(task, btn){
   if (task.type === "adsgram"){
     const nets = {
+      tads: () => new Promise((resolve, reject) => {
+        if (!window.tads || !window.tads.init || !CONFIG.TADS_WIDGET_ID) return reject("tads-missing");
+        window.__tadsCb = { resolve, reject };
+        if (!window.__tadsCtl) window.__tadsCtl = window.tads.init({
+          widgetId: CONFIG.TADS_WIDGET_ID, type: "fullscreen", debug: false,
+          onShowReward: () => { const c = window.__tadsCb; window.__tadsCb = null; c && c.resolve(true); },
+          onAdsNotFound: () => { const c = window.__tadsCb; window.__tadsCb = null; c && c.reject("tads-none"); }
+        });
+        Promise.resolve(window.__tadsCtl.showAd()).catch(e => { const c = window.__tadsCb; window.__tadsCb = null; c && c.reject(e); });
+        setTimeout(() => { const c = window.__tadsCb; if (c && c.resolve === resolve){ window.__tadsCb = null; reject("tads-timeout"); } }, 60000);
+      }),
       monetag: () => {
         const fn = window["show_" + CONFIG.MONETAG_ZONE_ID];
         if (!CONFIG.MONETAG_ZONE_ID || typeof fn !== "function") return Promise.reject("monetag-missing");
