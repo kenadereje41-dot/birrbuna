@@ -9,6 +9,8 @@
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <!-- AdsGram SDK (rewarded ads). Remove if you only use link tasks. -->
 <script src="https://sad.adsgram.ai/js/sad.min.js"></script>
+<script src="https://libtl.com/sdk.js" data-zone="12261255" data-sdk="show_12261255"></script>
+<script src="https://w.tads.me/widget.js"></script>
 <style>
   :root{
     --bg:#071B17; --card:#111827; --line:#1f2a37; --input:#0b1220;
@@ -374,7 +376,11 @@ const CONFIG = {
   SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im13aGFmZG9xeWxhbGN4andmaWxnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ1NzQxNTgsImV4cCI6MjExMDE1MDE1OH0.CQ9oinVq4nVJlwcSx1tyBMTquZr553jKedl8qBasoog",     // the "anon public" key (safe to put here)
 
   // AdsGram rewarded-ad block id (from partner.adsgram.ai). "" = no AdsGram tasks.
-  ADSGRAM_BLOCK_ID: "",
+  ADSGRAM_BLOCK_ID: "59637",
+  MONETAG_ZONE_ID: "12261255",
+  TADS_WIDGET_ID: 13302,            // TADS fullscreen widget
+  AD_ORDER: ["monetag","tads","adsgram"], // tried in this order; the next one is the fallback
+  INAPP_ADS: { frequency: 2, capping: 0.1, interval: 45, timeout: 10, everyPage: false }, // automatic Monetag In-App Interstitial (2 ads per 6 min, 45 s apart). Set null to turn off. // first network tried first; the other is the fallback
 
   // Every withdraw request is sent here (Make.com) and forwarded to the admin on Telegram.
   WITHDRAW_WEBHOOK: "https://hook.us2.make.com/1ho38tq7da7bjhdrx7v7qe2wlpikmgng",
@@ -420,7 +426,7 @@ const T = {
   submit:"Gaaffii ergi",history:"Seenaa",pending:"Eegaa jira",paid:"Milkaa'eera",notEnough:"Haalli herregaa kee gahaa miti",
   sent:"Gaaffiin kee ergameera. Admin ni mirkaneessa.",leaderboard:"Warra baay'ee argatan",noData:"Ammaaf odeeffannoon hin jiru",
   adNotReady:"Beeksisni ammaaf hin jiru, booda yaali",stay:"Fuula sana sekondii {s} irra turi, booda deebi'i",invalidPhone:"Lakkoofsa sirrii galchi",
-  again:"Sa'aatii {h} booda",rewarded:"+{r} {c} argatte!",shareText:"Hojii salphaa hojjedhuu badhaasa argadhu!",you:"Ati",testMode:"TEST mode",needJoin:"Withdraw gochuuf dura channel keenya lamaanuu makami",joinReq:"🔒 Withdraw gochuuf ni barbaachisa",goJoin:"Makami",joinTitle:"Channel keenyatti makami",join:"Makami",check:"Mirkaneessi",joined:"Makamteetta ✓",notJoined:"Ammallee hin makamne",mpesaOff:"Ammaaf M-Pesa'n kaffaltii raawwachuun hin danda'amu",tokenSoon:"Dhiheenyatti B-Token gara Birr'tti jijjiiruu ni dandeessa",wdOk:"Withdraw milkaa'eera!",wdOkSub:"Herrega kee daqiiqaa daqiiqaan ilaali — maallaqa kee sa'aatii 24 keessatti siif ergina.",noInv:"Nama {n} afeerte malee withdraw gochuu hin dandeessu",ok:"Tole",phoneOnly:"Lakkoofsa bilbilaa",account:"Lakkoofsa herregaa baankii",seeAll:"Badhaasa hunda ilaali",firstPrize:"Badhaasa 1ffaa",needInvites:"Nama {n} afeerte malee withdraw gochuu hin dandeessu ({c}/{n})",contestTitle:"Dorgommii Afeerraa",contestSub:"Warra nama baay'ee afeeraniif badhaasa!",startsIn:"Ni jalqaba",endsIn:"Ni xumurama",ended:"Dorgommiin xumurameera",prizes:"Badhaasawwan",rules:"Seera: Afeerraan kan lakkaa'amu nama liinkii kee fayyadamee BirrBuna seene qofa. Account sobaa ni haqamu. Mo'attoonni erga dorgommiin xumuramee booda ni beeksifamu.",yourInvites:"Afeerraa kee",inviteNow:"Amma afeeri",dd:"guyyaa",hh:"sa'a",mm:"daq",ss:"sek",invites:"afeerraa",lbInvites:"Warra baay'ee afeeran"},
+  again:"Sa'aatii {h} booda",rewarded:"+{r} {c} argatte!",shareText:"Hojii salphaa hojjedhuu badhaasa argadhu!",you:"Ati",testMode:"TEST mode",needJoin:"Withdraw gochuuf dura channel keenya lamaanuu makami",joinReq:"🔒 Withdraw gochuuf ni barbaachisa",goJoin:"Makami",joinTitle:"Channel keenyatti makami",join:"Makami",check:"Mirkaneessi",joined:"Makamteetta ✓",notJoined:"Ammallee hin makamne",mpesaOff:"Ammaaf M-Pesa'n kaffaltii raawwachuun hin danda'amu",tokenSoon:"Dhiheenyatti B-Token gara Birr'tti jijjiiruu ni dandeessa",wdOk:"Withdraw milkaa'eera!",wdOkSub:"Maallaqa kee sa'aatii 24 keessatti siif ergina. Yoo baay'ate guyyaa 4–7 fudhachuu danda'a. Kanaaf herrega kee daqiiqaa daqiiqaan ilaali.",noInv:"Nama {n} afeerte malee withdraw gochuu hin dandeessu",ok:"Tole",phoneOnly:"Lakkoofsa bilbilaa",account:"Lakkoofsa herregaa baankii",seeAll:"Badhaasa hunda ilaali",firstPrize:"Badhaasa 1ffaa",needInvites:"Nama {n} afeerte malee withdraw gochuu hin dandeessu ({c}/{n})",contestTitle:"Dorgommii Afeerraa",contestSub:"Warra nama baay'ee afeeraniif badhaasa!",startsIn:"Ni jalqaba",endsIn:"Ni xumurama",ended:"Dorgommiin xumurameera",prizes:"Badhaasawwan",rules:"Seera: Afeerraan kan lakkaa'amu nama liinkii kee fayyadamee BirrBuna seene qofa. Account sobaa ni haqamu. Mo'attoonni erga dorgommiin xumuramee booda ni beeksifamu.",yourInvites:"Afeerraa kee",inviteNow:"Amma afeeri",dd:"guyyaa",hh:"sa'a",mm:"daq",ss:"sek",invites:"afeerraa",lbInvites:"Warra baay'ee afeeran"},
  am:{home:"መነሻ",earn:"ያግኙ",top:"ውድድር",invite:"ጋብዝ",withdraw:"ማውጣት",balance:"ቀሪ ሂሳብ",totalEarned:"ጠቅላላ ገቢ",
   tasks:"ተግባራት",earnSub:"ተግባር በመጨረስ ሽልማት ያግኙ",start:"ጀምር",done:"ተጠናቋል",wait:"{s} ሰከንድ ይጠብቁ...",
   taskAd:"ማስታወቂያ ይመልከቱ",taskLink:"ሊንኩን ይክፈቱ",inviteTitle:"ጋብዝ እና ያግኙ",inviteSub:"ለሚመዘገብ እያንዳንዱ ጓደኛ {r} {c} ያግኙ",
@@ -429,7 +435,7 @@ const T = {
   submit:"ጥያቄ ላክ",history:"ታሪክ",pending:"በመጠባበቅ ላይ",paid:"ተሳክቷል",notEnough:"ቀሪ ሂሳብዎ በቂ አይደለም",
   sent:"ጥያቄዎ ተልኳል። አስተዳዳሪ ያረጋግጣል።",leaderboard:"ከፍተኛ ገቢ ያገኙ",noData:"እስካሁን መረጃ የለም",
   adNotReady:"ማስታወቂያ አሁን የለም፣ ቆይተው ይሞክሩ",stay:"ገጹ ላይ {s} ሰከንድ ቆይተው ይመለሱ",invalidPhone:"ትክክለኛ ቁጥር ያስገቡ",
-  again:"ከ{h} ሰዓት በኋላ",rewarded:"+{r} {c} አግኝተዋል!",shareText:"ቀላል ተግባራትን ሰርተው ሽልማት ያግኙ!",you:"እርስዎ",testMode:"TEST mode",needJoin:"ገንዘብ ከማውጣትዎ በፊት ሁለቱንም ቻናሎቻችንን ይቀላቀሉ",joinReq:"🔒 ገንዘብ ለማውጣት ያስፈልጋል",goJoin:"ይቀላቀሉ",joinTitle:"ቻናሎቻችንን ይቀላቀሉ",join:"ይቀላቀሉ",check:"አረጋግጥ",joined:"ተቀላቅለዋል ✓",notJoined:"እስካሁን አልተቀላቀሉም",mpesaOff:"ለጊዜው በM-Pesa ክፍያ መፈጸም አይቻልም",tokenSoon:"በቅርቡ B-Tokenን ወደ ብር መቀየር ይችላሉ",wdOk:"ገንዘብ ማውጣት ተሳክቷል!",wdOkSub:"ሂሳብዎን በየደቂቃው ይፈትሹ — ገንዘብዎን በ24 ሰዓት ውስጥ እንልካለን።",noInv:"{n} ሰው ሳይጋብዙ ገንዘብ ማውጣት አይችሉም",ok:"እሺ",phoneOnly:"ስልክ ቁጥር",account:"የባንክ ሂሳብ ቁጥር",seeAll:"ሁሉንም ሽልማቶች ይመልከቱ",firstPrize:"1ኛ ሽልማት",needInvites:"ገንዘብ ለማውጣት ቢያንስ {n} ሰው መጋበዝ አለብዎት ({c}/{n})",contestTitle:"የግብዣ ውድድር",contestSub:"ብዙ ሰው ለጋበዙ ሽልማት!",startsIn:"ይጀምራል",endsIn:"ያበቃል",ended:"ውድድሩ ተጠናቋል",prizes:"ሽልማቶች",rules:"ደንብ፦ የሚቆጠረው በግብዣ ሊንክዎ BirrBunaን የጀመረ ሰው ብቻ ነው። ሐሰተኛ አካውንቶች ይሰረዛሉ። አሸናፊዎች ውድድሩ ካበቃ በኋላ ይገለፃሉ።",yourInvites:"የእርስዎ ግብዣዎች",inviteNow:"አሁን ይጋብዙ",dd:"ቀን",hh:"ሰዓት",mm:"ደቂቃ",ss:"ሰከንድ",invites:"ግብዣ",lbInvites:"ብዙ የጋበዙ"},
+  again:"ከ{h} ሰዓት በኋላ",rewarded:"+{r} {c} አግኝተዋል!",shareText:"ቀላል ተግባራትን ሰርተው ሽልማት ያግኙ!",you:"እርስዎ",testMode:"TEST mode",needJoin:"ገንዘብ ከማውጣትዎ በፊት ሁለቱንም ቻናሎቻችንን ይቀላቀሉ",joinReq:"🔒 ገንዘብ ለማውጣት ያስፈልጋል",goJoin:"ይቀላቀሉ",joinTitle:"ቻናሎቻችንን ይቀላቀሉ",join:"ይቀላቀሉ",check:"አረጋግጥ",joined:"ተቀላቅለዋል ✓",notJoined:"እስካሁን አልተቀላቀሉም",mpesaOff:"ለጊዜው በM-Pesa ክፍያ መፈጸም አይቻልም",tokenSoon:"በቅርቡ B-Tokenን ወደ ብር መቀየር ይችላሉ",wdOk:"ገንዘብ ማውጣት ተሳክቷል!",wdOkSub:"ገንዘብዎን በ24 ሰዓት ውስጥ እንልካለን። ቢበዛ ከ4–7 ቀናት ሊወስድ ይችላል። ስለዚህ ሂሳብዎን በየደቂቃው ይፈትሹ።",noInv:"{n} ሰው ሳይጋብዙ ገንዘብ ማውጣት አይችሉም",ok:"እሺ",phoneOnly:"ስልክ ቁጥር",account:"የባንክ ሂሳብ ቁጥር",seeAll:"ሁሉንም ሽልማቶች ይመልከቱ",firstPrize:"1ኛ ሽልማት",needInvites:"ገንዘብ ለማውጣት ቢያንስ {n} ሰው መጋበዝ አለብዎት ({c}/{n})",contestTitle:"የግብዣ ውድድር",contestSub:"ብዙ ሰው ለጋበዙ ሽልማት!",startsIn:"ይጀምራል",endsIn:"ያበቃል",ended:"ውድድሩ ተጠናቋል",prizes:"ሽልማቶች",rules:"ደንብ፦ የሚቆጠረው በግብዣ ሊንክዎ BirrBunaን የጀመረ ሰው ብቻ ነው። ሐሰተኛ አካውንቶች ይሰረዛሉ። አሸናፊዎች ውድድሩ ካበቃ በኋላ ይገለፃሉ።",yourInvites:"የእርስዎ ግብዣዎች",inviteNow:"አሁን ይጋብዙ",dd:"ቀን",hh:"ሰዓት",mm:"ደቂቃ",ss:"ሰከንድ",invites:"ግብዣ",lbInvites:"ብዙ የጋበዙ"},
  so:{home:"Hoyga",earn:"Kasbo",top:"Tartan",invite:"Casuum",withdraw:"Ka bax",balance:"Haraaga",totalEarned:"Wadarta dakhliga",
   tasks:"Hawlaha",earnSub:"Dhammee hawl oo hel abaalmarin",start:"Bilow",done:"Dhammaaday",wait:"Sug {s} ilbiriqsi...",
   taskAd:"Daawo xayeysiis",taskLink:"Fur linkiga",inviteTitle:"Casuum oo kasbo",inviteSub:"Saaxiib kasta oo is diiwaangeliya hel {r} {c}",
@@ -438,7 +444,7 @@ const T = {
   submit:"Dir codsiga",history:"Taariikhda",pending:"Sugaya",paid:"Guulaystay",notEnough:"Haraagaagu kuma filna",
   sent:"Codsigaaga waa la diray. Maamulaha ayaa xaqiijin doona.",leaderboard:"Kuwa ugu badan kasbaday",noData:"Weli xog ma jirto",
   adNotReady:"Xayeysiis hadda ma jiro, mar dambe isku day",stay:"Bogga ku joog {s} ilbiriqsi kadibna soo noqo",invalidPhone:"Geli lambar sax ah",
-  again:"{h} saac kadib",rewarded:"+{r} {c} ayaad heshay!",shareText:"Qabo hawlo fudud oo hel abaalmarin!",you:"Adiga",testMode:"TEST mode",needJoin:"Ka hor intaadan lacag bixin, ku biir labada kanaal",joinReq:"🔒 Waxaa loo baahan yahay lacag bixinta",goJoin:"Ku biir",joinTitle:"Ku biir kanaaladayada",join:"Ku biir",check:"Hubi",joined:"Waad ku biirtay ✓",notJoined:"Weli kuma aadan biirin",mpesaOff:"Hadda lacag bixinta M-Pesa lama heli karo",tokenSoon:"Dhawaan B-Token waxaad u beddeli kartaa Birr",wdOk:"Lacag bixintu way guulaysatay!",wdOkSub:"Akoonkaaga daqiiqad kasta hubi — lacagtaada waxaan kuu soo diri doonaa 24 saac gudahood.",noInv:"Lacag ma bixin kartid ilaa aad casuunto {n} qof",ok:"Hagaag",phoneOnly:"Lambarka telefoonka",account:"Lambarka akoonka bangiga",seeAll:"Eeg dhammaan abaalmarinnada",firstPrize:"Abaalmarinta 1aad",needInvites:"Si aad lacag u bixiso waa inaad casuuntaa ugu yaraan {n} qof ({c}/{n})",contestTitle:"Tartanka Casuumaadda",contestSub:"Abaalmarin kuwa ugu badan casuuma!",startsIn:"Wuxuu bilaabanayaa",endsIn:"Wuxuu dhammaanayaa",ended:"Tartanku wuu dhammaaday",prizes:"Abaalmarinnada",rules:"Xeerka: Waxaa la tiriyaa kaliya qofka ku soo biiray BirrBuna linkigaaga casuumaadda. Akoonnada beenta ah waa la tirtirayaa. Guulaystayaasha waxaa la shaacin doonaa marka tartanku dhammaado.",yourInvites:"Casuumaaddaada",inviteNow:"Hadda casuum",dd:"maalin",hh:"saac",mm:"daq",ss:"ilb",invites:"casuumaad",lbInvites:"Kuwa ugu badan casuumay"},
+  again:"{h} saac kadib",rewarded:"+{r} {c} ayaad heshay!",shareText:"Qabo hawlo fudud oo hel abaalmarin!",you:"Adiga",testMode:"TEST mode",needJoin:"Ka hor intaadan lacag bixin, ku biir labada kanaal",joinReq:"🔒 Waxaa loo baahan yahay lacag bixinta",goJoin:"Ku biir",joinTitle:"Ku biir kanaaladayada",join:"Ku biir",check:"Hubi",joined:"Waad ku biirtay ✓",notJoined:"Weli kuma aadan biirin",mpesaOff:"Hadda lacag bixinta M-Pesa lama heli karo",tokenSoon:"Dhawaan B-Token waxaad u beddeli kartaa Birr",wdOk:"Lacag bixintu way guulaysatay!",wdOkSub:"Lacagtaada waxaan kuu soo diri doonaa 24 saac gudahood. Ugu badnaan waxay qaadan kartaa 4–7 maalmood. Sidaa darteed akoonkaaga daqiiqad kasta hubi.",noInv:"Lacag ma bixin kartid ilaa aad casuunto {n} qof",ok:"Hagaag",phoneOnly:"Lambarka telefoonka",account:"Lambarka akoonka bangiga",seeAll:"Eeg dhammaan abaalmarinnada",firstPrize:"Abaalmarinta 1aad",needInvites:"Si aad lacag u bixiso waa inaad casuuntaa ugu yaraan {n} qof ({c}/{n})",contestTitle:"Tartanka Casuumaadda",contestSub:"Abaalmarin kuwa ugu badan casuuma!",startsIn:"Wuxuu bilaabanayaa",endsIn:"Wuxuu dhammaanayaa",ended:"Tartanku wuu dhammaaday",prizes:"Abaalmarinnada",rules:"Xeerka: Waxaa la tiriyaa kaliya qofka ku soo biiray BirrBuna linkigaaga casuumaadda. Akoonnada beenta ah waa la tirtirayaa. Guulaystayaasha waxaa la shaacin doonaa marka tartanku dhammaado.",yourInvites:"Casuumaaddaada",inviteNow:"Hadda casuum",dd:"maalin",hh:"saac",mm:"daq",ss:"ilb",invites:"casuumaad",lbInvites:"Kuwa ugu badan casuumay"},
  ti:{home:"መበገሲ",earn:"ረኽብ",top:"ውድድር",invite:"ዓድም",withdraw:"ኣውጽእ",balance:"ዝተረፈ ሕሳብ",totalEarned:"ጠቕላላ እቶት",
   tasks:"ዕማማት",earnSub:"ዕማም ብምዝዛም ሽልማት ረኸብ",start:"ጀምር",done:"ተዛዚሙ",wait:"{s} ካልኢት ተጸበ...",
   taskAd:"መወዓውዒ ርአ",taskLink:"ሊንክ ክፈት",inviteTitle:"ዓድም እሞ ረኸብ",inviteSub:"ንዝምዝገብ ነፍሲ ወከፍ መሓዛ {r} {c} ረኸብ",
@@ -447,7 +453,7 @@ const T = {
   submit:"ሕቶ ስደድ",history:"ታሪኽ",pending:"ኣብ ምጽባይ",paid:"ተዓዊቱ",notEnough:"ሕሳብካ ኣይኣክልን",
   sent:"ሕቶኻ ተላኢኹ። ኣመሓዳሪ ከረጋግጽ እዩ።",leaderboard:"ዝለዓለ እቶት ዝረኸቡ",noData:"ክሳብ ሕጂ ሓበሬታ የለን",
   adNotReady:"ሕጂ መወዓውዒ የለን፣ ደሓር ፈትን",stay:"ኣብቲ ገጽ {s} ካልኢት ጸኒሕካ ተመለስ",invalidPhone:"ቅኑዕ ቁጽሪ ኣእቱ",
-  again:"ድሕሪ {h} ሰዓት",rewarded:"+{r} {c} ረኺብካ!",shareText:"ቀሊል ዕማማት ሰሪሕካ ሽልማት ረኸብ!",you:"ንስኻ",testMode:"TEST mode",needJoin:"ቅድሚ ምውጻእካ ናብ ክልቲኦም ቻናላትና ተጸንበር",joinReq:"🔒 ንምውጻእ የድሊ",goJoin:"ተጸንበር",joinTitle:"ናብ ቻናላትና ተጸንበር",join:"ተጸንበር",check:"ኣረጋግጽ",joined:"ተጸንቢርካ ✓",notJoined:"ገና ኣይተጸንበርካን",mpesaOff:"ሕጂ ብM-Pesa ክፍሊት ክፍጸም ኣይከኣልን",tokenSoon:"ብቐረባ B-Token ናብ ብር ክትቕይር ክትክእል ኢኻ",wdOk:"ምውጻእ ገንዘብ ተዓዊቱ!",wdOkSub:"ሕሳብካ በብደቒቕ ተቖጻጸር — ገንዘብካ ኣብ ውሽጢ 24 ሰዓት ክንሰደልካ ኢና።",noInv:"{n} ሰባት ከይዓደምካ ገንዘብ ከተውጽእ ኣይትኽእልን ኢኻ",ok:"ሕራይ",phoneOnly:"ቁጽሪ ስልኪ",account:"ቁጽሪ ሕሳብ ባንኪ",seeAll:"ኩሎም ሽልማታት ርአ",firstPrize:"1ይ ሽልማት",needInvites:"ንምውጻእ ብውሑዱ {n} ሰባት ክትዕድም ኣለካ ({c}/{n})",contestTitle:"ውድድር ዕድመ",contestSub:"ንብዙሓት ሰባት ዝዓደሙ ሽልማት!",startsIn:"ይጅምር",endsIn:"ይውዳእ",ended:"ውድድር ተዛዚሙ",prizes:"ሽልማታት",rules:"ሕጊ፦ ዝቑጸር ብሊንክ ዕድመኻ ናብ BirrBuna ዝኣተወ ሰብ ጥራይ እዩ። ናይ ሓሶት ኣካውንት ይድምሰስ። ተዓወትቲ ድሕሪ ውድድር ምውዳኡ ይግለጹ።",yourInvites:"ዕድመኻ",inviteNow:"ሕጂ ዓድም",dd:"መዓልቲ",hh:"ሰዓት",mm:"ደቒቕ",ss:"ካልኢት",invites:"ዕድመ",lbInvites:"ብዙሓት ዝዓደሙ"},
+  again:"ድሕሪ {h} ሰዓት",rewarded:"+{r} {c} ረኺብካ!",shareText:"ቀሊል ዕማማት ሰሪሕካ ሽልማት ረኸብ!",you:"ንስኻ",testMode:"TEST mode",needJoin:"ቅድሚ ምውጻእካ ናብ ክልቲኦም ቻናላትና ተጸንበር",joinReq:"🔒 ንምውጻእ የድሊ",goJoin:"ተጸንበር",joinTitle:"ናብ ቻናላትና ተጸንበር",join:"ተጸንበር",check:"ኣረጋግጽ",joined:"ተጸንቢርካ ✓",notJoined:"ገና ኣይተጸንበርካን",mpesaOff:"ሕጂ ብM-Pesa ክፍሊት ክፍጸም ኣይከኣልን",tokenSoon:"ብቐረባ B-Token ናብ ብር ክትቕይር ክትክእል ኢኻ",wdOk:"ምውጻእ ገንዘብ ተዓዊቱ!",wdOkSub:"ገንዘብካ ኣብ ውሽጢ 24 ሰዓት ክንሰደልካ ኢና። እንተበዝሐ 4–7 መዓልቲ ክወስድ ይኽእል። ስለዚ ሕሳብካ በብደቒቕ ተቖጻጸር።",noInv:"{n} ሰባት ከይዓደምካ ገንዘብ ከተውጽእ ኣይትኽእልን ኢኻ",ok:"ሕራይ",phoneOnly:"ቁጽሪ ስልኪ",account:"ቁጽሪ ሕሳብ ባንኪ",seeAll:"ኩሎም ሽልማታት ርአ",firstPrize:"1ይ ሽልማት",needInvites:"ንምውጻእ ብውሑዱ {n} ሰባት ክትዕድም ኣለካ ({c}/{n})",contestTitle:"ውድድር ዕድመ",contestSub:"ንብዙሓት ሰባት ዝዓደሙ ሽልማት!",startsIn:"ይጅምር",endsIn:"ይውዳእ",ended:"ውድድር ተዛዚሙ",prizes:"ሽልማታት",rules:"ሕጊ፦ ዝቑጸር ብሊንክ ዕድመኻ ናብ BirrBuna ዝኣተወ ሰብ ጥራይ እዩ። ናይ ሓሶት ኣካውንት ይድምሰስ። ተዓወትቲ ድሕሪ ውድድር ምውዳኡ ይግለጹ።",yourInvites:"ዕድመኻ",inviteNow:"ሕጂ ዓድም",dd:"መዓልቲ",hh:"ሰዓት",mm:"ደቒቕ",ss:"ካልኢት",invites:"ዕድመ",lbInvites:"ብዙሓት ዝዓደሙ"},
  sid:{home:"Mine",earn:"Afi",top:"Dorgommi",invite:"Sei",withdraw:"Fushshi",balance:"Herrego",totalEarned:"Baala afi'noonni",
   tasks:"Loosu",earnSub:"Loosu gooffite badhaasa afi",start:"Hanafi",done:"Gooffino",wait:"Sekonde {s} agari...",
   taskAd:"Beeksisa la'i",taskLink:"Liinke fani",inviteTitle:"Seetenni afi",inviteSub:"Galmaamanno mittu mittu jaallira {r} {c} afi",
@@ -456,7 +462,7 @@ const T = {
   submit:"Xaa'mo soy",history:"Seenaa",pending:"Agarannoha",paid:"Qaxxaabbino",notEnough:"Herregokki gahannokki",
   sent:"Xaa'mokki soyamino. Admine buuxxanno.",leaderboard:"Roore afi'noori",noData:"Konni yannara odeeffanno dino",
   adNotReady:"Konni yannara beeksisi dino, gedensaanni wodhi",stay:"Qoolete aana sekonde {s} heedhe higi",invalidPhone:"Dancha kiiro eessi",
-  again:"Saate {h} gedensaanni",rewarded:"+{r} {c} afiite!",shareText:"Shota loosu loosite badhaasa afi!",you:"Ati",testMode:"TEST mode",needJoin:"Fushshate albaanni lameenta channelubbanketi eessi",joinReq:"🔒 Fushshate hasiisanno",goJoin:"Eessi",joinTitle:"Channelubbanketi eessi",join:"Eessi",check:"Buuxxi",joined:"Eetto ✓",notJoined:"Konni yannara di'eeitto",mpesaOff:"Xa M-Pesanni baatto assate didandiinanni",tokenSoon:"Ajeenni B-Token Birrate soorrate dandaatto",wdOk:"Fushshu qaxxaabbino!",wdOkSub:"Herregokki daqiiqa daqiiqara la'i — miilanchokki saate 24 giddo soyneemmo.",noInv:"{n} manna seetinoketi fushshate dandaattokki",ok:"Ee",phoneOnly:"Bilbilete kiiro",account:"Baanke herrego kiiro",seeAll:"Badhaasubba baala la'i",firstPrize:"Umi badhaasa",needInvites:"Fushshate {n} manna seeta hasiissannohe ({c}/{n})",contestTitle:"Seetu Dorgommi",contestSub:"Roore seeteeraho badhaasa!",startsIn:"Hanafanno",endsIn:"Gooffanno",ended:"Dorgommu gooffino",prizes:"Badhaasubba",rules:"Seera: Qoodamannohu seera liinkekkinni BirrBuna eino manni calla. Kaddabba akkaawuntubba hunantanno. Mo'aano dorgommu gooffinoro egennisiisamanno.",yourInvites:"Seetekki",inviteNow:"Xa seeti",dd:"barra",hh:"saate",mm:"daq",ss:"sek",invites:"seetu",lbInvites:"Roore seetino"},
+  again:"Saate {h} gedensaanni",rewarded:"+{r} {c} afiite!",shareText:"Shota loosu loosite badhaasa afi!",you:"Ati",testMode:"TEST mode",needJoin:"Fushshate albaanni lameenta channelubbanketi eessi",joinReq:"🔒 Fushshate hasiisanno",goJoin:"Eessi",joinTitle:"Channelubbanketi eessi",join:"Eessi",check:"Buuxxi",joined:"Eetto ✓",notJoined:"Konni yannara di'eeitto",mpesaOff:"Xa M-Pesanni baatto assate didandiinanni",tokenSoon:"Ajeenni B-Token Birrate soorrate dandaatto",wdOk:"Fushshu qaxxaabbino!",wdOkSub:"Miilanchokki saate 24 giddo soyneemmo. Roortaanno yannara barra 4–7 adhanno. Konne daafira herregokki daqiiqa daqiiqara la'i.",noInv:"{n} manna seetinoketi fushshate dandaattokki",ok:"Ee",phoneOnly:"Bilbilete kiiro",account:"Baanke herrego kiiro",seeAll:"Badhaasubba baala la'i",firstPrize:"Umi badhaasa",needInvites:"Fushshate {n} manna seeta hasiissannohe ({c}/{n})",contestTitle:"Seetu Dorgommi",contestSub:"Roore seeteeraho badhaasa!",startsIn:"Hanafanno",endsIn:"Gooffanno",ended:"Dorgommu gooffino",prizes:"Badhaasubba",rules:"Seera: Qoodamannohu seera liinkekkinni BirrBuna eino manni calla. Kaddabba akkaawuntubba hunantanno. Mo'aano dorgommu gooffinoro egennisiisamanno.",yourInvites:"Seetekki",inviteNow:"Xa seeti",dd:"barra",hh:"saate",mm:"daq",ss:"sek",invites:"seetu",lbInvites:"Roore seetino"},
  en:{home:"Home",earn:"Earn",top:"Contest",invite:"Invite",withdraw:"Withdraw",balance:"Balance",totalEarned:"Total earned",
   tasks:"Tasks",earnSub:"Complete a task to get a reward",start:"Start",done:"Done",wait:"Wait {s} seconds...",
   taskAd:"Watch an ad",taskLink:"Open the link",inviteTitle:"Invite & earn",inviteSub:"Get {r} {c} for every friend who joins",
@@ -465,7 +471,7 @@ const T = {
   submit:"Send request",history:"History",pending:"Pending",paid:"Successful",notEnough:"Your balance is not enough",
   sent:"Request sent. The admin will confirm it.",leaderboard:"Top earners",noData:"No data yet",
   adNotReady:"No ad available right now, try later",stay:"Stay on the page for {s} seconds, then come back",invalidPhone:"Enter a valid number",
-  again:"In {h} h",rewarded:"+{r} {c} earned!",shareText:"Do simple tasks and get rewards!",you:"You",testMode:"TEST mode",needJoin:"Join both of our channels before you withdraw",joinReq:"🔒 Required to withdraw",goJoin:"Join now",joinTitle:"Join our channels",join:"Join",check:"Check",joined:"Joined ✓",notJoined:"You haven't joined yet",mpesaOff:"M-Pesa payments are not available right now",tokenSoon:"Coming soon: convert your B-Token to Birr",wdOk:"Withdrawal successful!",wdOkSub:"Check your account every minute — we will send your money within 24 hours.",noInv:"You can't withdraw until you invite {n} people",ok:"OK",phoneOnly:"Phone number",account:"Bank account number",seeAll:"See all prizes",firstPrize:"1st prize",needInvites:"To withdraw you must invite at least {n} people ({c}/{n})",contestTitle:"Invite Contest",contestSub:"Prizes for those who invite the most!",startsIn:"Starts in",endsIn:"Ends in",ended:"The contest has ended",prizes:"Prizes",rules:"Rules: Only people who join BirrBuna through your invite link are counted. Fake accounts are removed. Winners are announced after the contest ends.",yourInvites:"Your invites",inviteNow:"Invite now",dd:"d",hh:"h",mm:"m",ss:"s",invites:"invites",lbInvites:"Top inviters"}
+  again:"In {h} h",rewarded:"+{r} {c} earned!",shareText:"Do simple tasks and get rewards!",you:"You",testMode:"TEST mode",needJoin:"Join both of our channels before you withdraw",joinReq:"🔒 Required to withdraw",goJoin:"Join now",joinTitle:"Join our channels",join:"Join",check:"Check",joined:"Joined ✓",notJoined:"You haven't joined yet",mpesaOff:"M-Pesa payments are not available right now",tokenSoon:"Coming soon: convert your B-Token to Birr",wdOk:"Withdrawal successful!",wdOkSub:"We will send your money within 24 hours. At most it can take 4–7 days, so check your account every minute.",noInv:"You can't withdraw until you invite {n} people",ok:"OK",phoneOnly:"Phone number",account:"Bank account number",seeAll:"See all prizes",firstPrize:"1st prize",needInvites:"To withdraw you must invite at least {n} people ({c}/{n})",contestTitle:"Invite Contest",contestSub:"Prizes for those who invite the most!",startsIn:"Starts in",endsIn:"Ends in",ended:"The contest has ended",prizes:"Prizes",rules:"Rules: Only people who join BirrBuna through your invite link are counted. Fake accounts are removed. Winners are announced after the contest ends.",yourInvites:"Your invites",inviteNow:"Invite now",dd:"d",hh:"h",mm:"m",ss:"s",invites:"invites",lbInvites:"Top inviters"}
 };
 
 /* =====================================================================
@@ -555,7 +561,29 @@ function taskCard(task, i){
   div.appendChild(b);
   return div;
 }
+/* ---- banned / on-hold account: full-screen lock ---- */
+const LOCK_TEXT = {
+  banned: ["⛔", "Your account is banned", "If you want to use BirrBuna, change your Telegram account.",
+           "Account kee dhorkameera (ban). BirrBuna fayyadamuu yoo barbaadde, account Telegram kee jijjiiri.",
+           "መለያዎ ታግዷል። BirrBunaን መጠቀም ከፈለጉ የቴሌግራም መለያዎን ይቀይሩ።"],
+  review: ["⏳", "We are checking your account", "The BirrBuna admin is checking your account. Your money will be sent within 4–7 days. You cannot use the app until the check is finished.",
+           "Admin BirrBuna account kee qorachaa jira. Maallaqni kee guyyaa 4–7 keessatti siif ergama. Hanga qorannoon xumuramutti app fayyadamuu hin dandeessu.",
+           "የBirrBuna አስተዳዳሪ መለያዎን እየመረመረ ነው። ገንዘብዎ ከ4–7 ቀናት ውስጥ ይላካል። ምርመራው እስኪያልቅ ድረስ መተግበሪያውን መጠቀም አይችሉም።"]
+};
+function showLocked(kind){
+  const L = LOCK_TEXT[kind]; if (!L) return false;
+  let o = document.getElementById("lockScreen");
+  if (!o){ o = document.createElement("div"); o.id = "lockScreen"; document.body.appendChild(o); }
+  o.style.cssText = "position:fixed;inset:0;z-index:99999;background:#061914;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px;gap:14px;font-family:inherit;overflow:auto";
+  o.innerHTML = '<div style="font-size:64px">' + L[0] + '</div>' +
+    '<div style="font-size:24px;font-weight:800;color:#FACC15">' + L[1] + '</div>' +
+    '<div style="font-size:16px;line-height:1.5;max-width:420px">🇬🇧 ' + L[2] + '</div>' +
+    '<div style="font-size:16px;line-height:1.5;max-width:420px;color:#A7F3D0">🟢 ' + L[3] + '</div>' +
+    '<div style="font-size:16px;line-height:1.5;max-width:420px;color:#FDE68A">🟡 ' + L[4] + '</div>';
+  return true;
+}
 function render(){
+  if (state && state.status && state.status !== "active" && showLocked(state.status)) return;
   document.documentElement.lang = lang;
   const m = CONFIG.APP_NAME.match(/^(.*?)([A-Z][a-z]+)$/) || [0, CONFIG.APP_NAME, ""];
   $("appName").innerHTML = `${m[1]}<b>${m[2]}</b>` + (TEST ? ` <small style="font-size:11px;color:var(--muted)">${t("testMode")}</small>` : "");
@@ -654,10 +682,39 @@ async function reward(task){
 }
 function runTask(task, btn){
   if (task.type === "adsgram"){
-    if (!window.Adsgram || !CONFIG.ADSGRAM_BLOCK_ID){ toast(t("adNotReady")); return; }
-    const ad = window.Adsgram.init({ blockId: CONFIG.ADSGRAM_BLOCK_ID });
-    // In production the reward should come from AdsGram's server "reward URL" to your backend.
-    ad.show().then(r => { if (r.done) reward(task); }).catch(() => toast(t("adNotReady")));
+    const nets = {
+      tads: () => new Promise((resolve, reject) => {
+        if (!window.tads || !window.tads.init || !CONFIG.TADS_WIDGET_ID) return reject("tads-missing");
+        window.__tadsCb = { resolve, reject };
+        if (!window.__tadsCtl) window.__tadsCtl = window.tads.init({
+          widgetId: CONFIG.TADS_WIDGET_ID, type: "fullscreen", debug: false,
+          onShowReward: () => { const c = window.__tadsCb; window.__tadsCb = null; c && c.resolve(true); },
+          onAdsNotFound: () => { const c = window.__tadsCb; window.__tadsCb = null; c && c.reject("tads-none"); }
+        });
+        Promise.resolve(window.__tadsCtl.showAd()).catch(e => { const c = window.__tadsCb; window.__tadsCb = null; c && c.reject(e); });
+        setTimeout(() => { const c = window.__tadsCb; if (c && c.resolve === resolve){ window.__tadsCb = null; reject("tads-timeout"); } }, 60000);
+      }),
+      monetag: () => {
+        const fn = window["show_" + CONFIG.MONETAG_ZONE_ID];
+        if (!CONFIG.MONETAG_ZONE_ID || typeof fn !== "function") return Promise.reject("monetag-missing");
+        return fn().then(() => true);
+      },
+      adsgram: () => {
+        if (!window.Adsgram || !CONFIG.ADSGRAM_BLOCK_ID) return Promise.reject("adsgram-missing");
+        return window.Adsgram.init({ blockId: CONFIG.ADSGRAM_BLOCK_ID }).show().then(r => !!(r && r.done));
+      }
+    };
+    const order = (CONFIG.AD_ORDER || ["adsgram","monetag"]).filter(n => nets[n]);
+    btn.disabled = true;
+    (async () => {
+      let shown = false, watched = false;
+      for (const n of order){
+        try { watched = await nets[n](); shown = true; break; }
+        catch(e){ /* this network had no ad: try the next one */ }
+      }
+      if (!shown || !watched){ toast(t("adNotReady")); return; }
+      try { await reward(task); } catch(e){ toast(e.message || t("adNotReady")); }
+    })().finally(() => { btn.disabled = false; render(); });
     return;
   }
   // link task: open link, user must stay away for task.seconds
@@ -673,6 +730,23 @@ function runTask(task, btn){
     if (left <= 0){ clearInterval(iv); reward(task).catch(()=>{ toast(t("adNotReady")); render(); }); }
   }, 1000);
 }
+
+/* ---- extra ads: automatic In-App Interstitial + one ad before withdraw ---- */
+function startInAppAds(){
+  try{
+    const fn = window["show_" + CONFIG.MONETAG_ZONE_ID];
+    if (CONFIG.INAPP_ADS && typeof fn === "function") fn({ type:"inApp", inAppSettings: CONFIG.INAPP_ADS });
+  }catch(e){}
+}
+function showExtraAd(){
+  try{
+    const fn = window["show_" + CONFIG.MONETAG_ZONE_ID];
+    if (typeof fn !== "function") return Promise.resolve();
+    return Promise.race([ Promise.resolve(fn()).catch(()=>{}), new Promise(r => setTimeout(r, 60000)) ]);
+  }catch(e){ return Promise.resolve(); }
+}
+if (document.readyState === "complete") setTimeout(startInAppAds, 3000);
+else window.addEventListener("load", () => setTimeout(startInAppAds, 3000));
 
 /* ---- events ---- */
 document.querySelectorAll("nav a").forEach(a => a.onclick = e => {
@@ -711,6 +785,7 @@ $("btnWithdraw").onclick = async () => {
   if (amount > state.balance) return toast(t("notEnough"));
   if (CONFIG.CHANNELS.some(c => !(state.joined||{})[c.id])) return showModal("join", t("needJoin"), CONFIG.CHANNELS.map(c => `${(state.joined||{})[c.id] ? "✅" : "⬜"} ${c.name}`).join("<br>"));
   if (state.refs < CONFIG.MIN_INVITES_TO_WITHDRAW) return showModal("invite", t("noInv",{ n:CONFIG.MIN_INVITES_TO_WITHDRAW }), `${t("yourInvites")}: <b style="color:var(--gold)">${state.refs} / ${CONFIG.MIN_INVITES_TO_WITHDRAW}</b>`);
+  await showExtraAd(); // one ad before the withdraw request is sent
   try{
     const before = state.balance;
     const wid = Date.now().toString(36) + Math.random().toString(36).slice(2,6);
@@ -790,6 +865,7 @@ function showModal(kind, title, html){
 }
 
 /* ---- start ---- */
+render();
 (async () => {
   try{ const r = await api("init"); if (r.user) state = r.user; }catch(e){}
   render();
