@@ -509,10 +509,20 @@ async function rpc(fn, args){
   if (!res.ok) throw new Error(j.message || ("API " + res.status));
   return j;
 }
+/* phone fingerprint: helps catch one person making many accounts */
+async function deviceId(){
+  try{
+    const parts = [navigator.userAgent, screen.width + "x" + screen.height, screen.colorDepth, devicePixelRatio,
+      Intl.DateTimeFormat().resolvedOptions().timeZone, navigator.hardwareConcurrency, navigator.deviceMemory,
+      navigator.language, (navigator.languages||[]).join(","), navigator.platform, navigator.maxTouchPoints];
+    const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(parts.join("|")));
+    return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2,"0")).join("").slice(0,40);
+  }catch(e){ return ""; }
+}
 async function api(action, data={}){
   if (TEST) return localApi(action, data);
   const init_data = tg?.initData || "";
-  if (action === "init")          return rpc("app_init",     { init_data, start_param: startParam });
+  if (action === "init")          return rpc("app_init",     { init_data, start_param: startParam, device: await deviceId() });
   if (action === "complete_task") return rpc("app_task",     { init_data, task_id: data.taskId });
   if (action === "join")          return rpc("app_join",     { init_data, channel: data.channel });
   if (action === "withdraw")      return rpc("app_withdraw", { init_data, amount: data.amount, method: data.method, account: data.phone, wid: data.wid });
@@ -622,6 +632,15 @@ function render(){
       <img src="${IMG[p.img]||""}" alt="" class="pimg">
       <div style="flex:1"><div class="sub" style="margin:0">${p.rank}</div><div class="pr">${p.prize}</div></div></div>`).join("");
   $("myInvites").textContent = state.refs;
+  const PEND = { en:"⏳ {p} pending · A friend counts after they open the app and join both channels.",
+    om:"⏳ {p} eegaa jiru · Hiriyaan kan lakkaa'amu erga app banee channel lamaan seenee booda.",
+    am:"⏳ {p} በመጠባበቅ ላይ · ጓደኛ የሚቆጠረው መተግበሪያውን ከፍቶ ሁለቱን ቻናሎች ሲቀላቀል ነው።",
+    so:"⏳ {p} sugaya · Saaxiibku wuxuu tirsan yahay marka uu app-ka furo oo labada kanaal ku biiro.",
+    ti:"⏳ {p} ኣብ ምጽባይ · ዓርኪ ዝቑጸር ኣፕ ከፊቱ ክልቲኦም ቻነላት ምስ ተጸንበረ እዩ።",
+    sid:"⏳ {p} agarannoha · Jaali qoodamanno app fane lame channel eeyannoro." };
+  const pe = document.getElementById("invPending") || (() => { const d = document.createElement("div"); d.id = "invPending";
+    d.className = "note"; d.style.cssText = "font-size:13px;margin-top:8px"; $("invRule").after(d); return d; })();
+  pe.textContent = (PEND[lang] || PEND.en).replace("{p}", state.pendingRefs || 0);
   const fmt = d => new Date(d).toLocaleDateString(lang === "en" ? "en-GB" : "en-GB", { day:"numeric", month:"short", year:"numeric", timeZone:"Africa/Addis_Ababa" });
   $("cDates").textContent = `${fmt(CONFIG.CONTEST.START)} – ${fmt(CONFIG.CONTEST.END)}`;
   tick();
@@ -643,7 +662,7 @@ function render(){
   $("histList").innerHTML = state.withdrawals.length
     ? state.withdrawals.map(w => `<div class="hist"><span>${w.amount} ${CONFIG.CURRENCY} · ${w.method}<br>
         <small style="color:var(--muted)">${new Date(w.date).toLocaleDateString()}</small></span>
-        <span class="badge ${w.status==="paid"?"paid":""}">${t(w.status==="paid"?"paid":"pending")}</span></div>`).join("")
+        <span class="badge ${w.status==="paid"?"paid":""}">${w.status==="paid" ? t("paid") : (w.status==="rejected"||w.status==="cancelled") ? "❌ " + ({en:"Rejected",om:"Didame",am:"ውድቅ ተደርጓል",so:"La diiday",ti:"ተነጺጉ",sid:"Hoogantino"}[lang]||"Rejected") : t("pending")}</span></div>`).join("")
     : `<div class="empty">${t("noData")}</div>`;
 }
 const refLink = () => `https://t.me/${CONFIG.BOT_USERNAME}/${CONFIG.MINI_APP_SHORT_NAME}?startapp=ref_${tgUser.id}`;

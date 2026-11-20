@@ -171,12 +171,19 @@ async function loadWd(){
     ((data||[]).length ? data.map(w => { const u = U[w.tg_id] || {}; return `<tr><td>${dt(w.created_at)}</td>
       <td>${esc(u.first_name)} ${u.username ? `<span class="muted">@${esc(u.username)}</span>` : ""}</td>
       <td><b style="color:var(--gold)">${fmt(w.amount)} ETB</b></td><td>${esc(w.method)}</td><td>${esc(w.account)}</td><td>${u.refs ?? ""}</td>
-      <td><span class="badge ${w.status==="paid"?"paid":""}">${w.status === "paid" ? "Paid " + dt(w.paid_at) : "Pending"}</span></td>
-      <td>${w.status === "pending" ? `<button class="gold" data-pay="${esc(w.wid)}">✅ Mark paid</button>` : ""}</td></tr>`; }).join("")
+      <td><span class="badge ${w.status==="paid"?"paid":""}">${w.status === "paid" ? "Paid " + dt(w.paid_at) : w.status === "pending" ? "Pending" : "❌ " + esc(w.status)}</span></td>
+      <td>${w.status === "pending" ? `<button class="gold" data-pay="${esc(w.wid)}">✅ Mark paid</button> <button class="ghost" data-rej="${esc(w.wid)}">❌ Reject</button>` : ""}</td></tr>`; }).join("")
      : `<tr><td colspan="8" class="muted">Nothing here.</td></tr>`);
   document.querySelectorAll("[data-pay]").forEach(b => b.onclick = async () => {
     b.disabled = true; b.textContent = "…";
     const { error } = await sb.rpc("admin_mark_paid", { p_wid: b.dataset.pay });
+    if (error) alertBox(error.message);
+    loadWd(); loadStats();
+  });
+  document.querySelectorAll("[data-rej]").forEach(b => b.onclick = async () => {
+    if (!confirm("Reject this withdrawal? The money goes back to the user's balance and the user gets a Telegram message.")) return;
+    b.disabled = true; b.textContent = "…";
+    const { error } = await sb.rpc("admin_reject_withdrawal", { p_wid: b.dataset.rej });
     if (error) alertBox(error.message);
     loadWd(); loadStats();
   });
@@ -188,10 +195,19 @@ async function loadUsers(){
   if (term){ q = /^\d+$/.test(term) ? q.eq("tg_id", term) : q.or(`first_name.ilike.%${term}%,username.ilike.%${term}%`); }
   const { data, error } = await q;
   if (error) return alertBox(error.message);
-  $("usersTable").innerHTML = `<tr><th>Joined</th><th>Name</th><th>Username</th><th>Telegram ID</th><th>Invites</th><th>B-Token</th><th>Balance</th><th>Tasks</th><th>Channels</th></tr>` +
+  $("usersTable").innerHTML = `<tr><th>Joined</th><th>Name</th><th>Username</th><th>Telegram ID</th><th>Invites</th><th>B-Token</th><th>Balance</th><th>Tasks</th><th>Channels</th><th>Invited status</th></tr>` +
     ((data||[]).length ? data.map(u => `<tr><td>${dt(u.created_at)}</td><td>${esc(u.first_name)}</td><td>${u.username ? "@" + esc(u.username) : ""}</td>
-      <td>${u.tg_id}</td><td>${u.refs}</td><td>${fmt(u.tokens)}</td><td>${fmt(u.balance)} ETB</td><td>${Object.keys(u.completed||{}).length}</td><td>${Object.keys(u.joined||{}).length}/2</td></tr>`).join("")
-     : `<tr><td colspan="9" class="muted">No users found.</td></tr>`);
+      <td>${u.tg_id}</td><td>${u.refs}</td><td>${fmt(u.tokens)}</td><td>${fmt(u.balance)} ETB</td><td>${Object.keys(u.completed||{}).length}</td><td>${Object.keys(u.joined||{}).length}/2</td>
+      <td>${u.ref_by ? esc(u.ref_status || "") + (u.ref_reason ? ` <span class="muted">(${esc(u.ref_reason)})</span>` : "") : ""}
+        ${u.ref_status === "flagged" ? `<button class="gold" data-ok="${u.tg_id}">✅</button><button class="ghost" data-no="${u.tg_id}">❌</button>` : ""}
+        ${(u.fraud_flags||[]).length ? `<div class="muted">⚠️ ${esc(u.fraud_flags.join(", "))}</div>` : ""}</td></tr>`).join("")
+     : `<tr><td colspan="10" class="muted">No users found.</td></tr>`);
+  document.querySelectorAll("[data-ok],[data-no]").forEach(b => b.onclick = async () => {
+    b.disabled = true;
+    const { error } = await sb.rpc("admin_review_invite", { p_uid: Number(b.dataset.ok || b.dataset.no), p_approve: !!b.dataset.ok });
+    if (error) alertBox(error.message);
+    loadUsers();
+  });
 }
 
 function alertBox(msg){ const d = document.createElement("div"); d.className = "card"; d.style.borderColor = "var(--red)"; d.textContent = "⚠️ " + msg; document.querySelector(".wrap").prepend(d); setTimeout(() => d.remove(), 6000); }
